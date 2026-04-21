@@ -165,6 +165,98 @@ import type { PaymentData, OnPaymentEventLastStep } from '@podkrepibg/react-iris
 import type { PaymentData } from '@podkrepibg/react-irispay/types'
 ```
 
+## Lazy updates: feeding session and payment data later
+
+You rarely have the session hashes or the payment amount at the moment you mount the provider. `useIrisElements()` returns two setters that let you push them in once they're ready — every child element re-renders automatically and picks up the new values.
+
+| Setter | Updates | Read via |
+| --- | --- | --- |
+| `updatePaymentSessionData({ hookHash, userhash })` | The IRIS session | `paymentSession` |
+| `updatePaymentData(data)` | Default payload for `<PaymentDataElement>` | `paymentData` |
+
+### Deferring the session
+
+`<IRISPaySDK>` (and every wrapper built on it) renders `null` until both `hookHash` and `userhash` are present on `paymentSession`. Mount the provider with empty strings, then push the real values once your backend returns them:
+
+```tsx
+import { useEffect } from 'react'
+import {
+  IrisElements,
+  PaymentElement,
+  useIrisElements,
+} from '@podkrepibg/react-irispay'
+
+function CheckoutInner() {
+  const { updatePaymentSessionData } = useIrisElements()
+
+  useEffect(() => {
+    async function start() {
+      const { hookHash, userhash } = await createIrisSessionOnMyBackend()
+      updatePaymentSessionData?.({ hookHash, userhash })
+    }
+    start()
+  }, [])
+
+  return <PaymentElement />
+}
+
+export function Checkout() {
+  return (
+    <IrisElements
+      backend="production"
+      hookhash=""
+      userhash=""
+      publicHash={process.env.IRIS_PUBLIC_HASH!}>
+      <CheckoutInner />
+    </IrisElements>
+  )
+}
+```
+
+Once the setter fires, the host `<div>` mounts and the SDK script loads. Calling the setter again replaces the session entirely — useful if the user bails and you want to restart the flow with a fresh hookhash.
+
+### Deferring payment data
+
+`<PaymentDataElement>` looks at the context's `paymentData` first, then falls back to the `payment_data` prop. Leave both empty at mount and push data once the user fills in the form:
+
+```tsx
+function AmountPicker() {
+  const { updatePaymentData } = useIrisElements()
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        const sum = Number(new FormData(e.currentTarget).get('amount'))
+        updatePaymentData?.({
+          sum,
+          description: 'Donation',
+          toIban: 'BG00XXXX...',
+          merchant: 'Example',
+        })
+      }}>
+      <input name="amount" type="number" required />
+      <button type="submit">Continue</button>
+    </form>
+  )
+}
+
+function Checkout() {
+  return (
+    <IrisElements
+      backend="production"
+      hookhash={session.hookhash}
+      userhash={session.userhash}
+      publicHash={process.env.IRIS_PUBLIC_HASH!}>
+      <AmountPicker />
+      <PaymentDataElement />
+    </IrisElements>
+  )
+}
+```
+
+`<PaymentDataElement>` returns `null` as long as `paymentData` is `null` and no `payment_data` prop was passed, so the host div only appears once you have something to charge. Both setters replace the whole object — pass a complete payload each time rather than merging.
+
 ## How it mounts
 
 Each element attaches a Shadow DOM to a host `<div>`, loads the IRIS SDK stylesheet into that shadow root, injects the SDK script once per page into `document.body`, and portals the `<irispay-component>` into the shadow root. Your host app's global CSS will not leak into the IRIS UI and IRIS's styles will not leak out. SSR is safe — all DOM access happens inside `useEffect`.
