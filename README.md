@@ -4,11 +4,15 @@ A thin React wrapper around the [IRIS Pay (Pay-By-Click) Web SDK](https://www.ir
 
 ## Install
 
+Not published to npm yet — install directly from GitHub:
+
 ```bash
-yarn add @podkrepibg/react-irispay
-# or
-npm install @podkrepibg/react-irispay
+yarn add github:podkrepibg/react-irispay
+# or pin to a branch/tag/commit:
+yarn add github:podkrepibg/react-irispay#main
 ```
+
+The `prepare` hook builds `dist/` during install, so the consumer gets a ready-to-import package. If your install fails because the build step couldn't run, make sure the dev dependencies (Vite, TypeScript, `vite-plugin-dts`, `@vitejs/plugin-react`) are allowed to install — some CI setups pass `--production` or equivalent, which skips them and breaks `prepare`.
 
 Peer dependencies: `react >= 18` and `react-dom >= 18`. The package is **ESM-only**.
 
