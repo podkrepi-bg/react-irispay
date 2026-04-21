@@ -1,16 +1,16 @@
 import { useContext } from 'react'
 import IRISPaySDK, { type ElementWithListener } from './IRISPaySDK'
 import { IRISPayContext } from '../context/IRISPayProvider'
-import { SUPPORTED_CURRENCIES } from '../types/common'
+import { SUPPORTED_CURRENCIES, type PaymentData } from '../types/common'
 import type { IRISPaymentDataElementProps } from '../types/elements'
 
 export default function PaymentDataElement(
   props: ElementWithListener<IRISPaymentDataElementProps>,
 ) {
   const context = useContext(IRISPayContext)
-  const paymentData = context?.paymentData || props.payment_data
+  const base = (context?.elementData as PaymentData | undefined) ?? props.payment_data
 
-  if (!paymentData) return null
+  if (!base) return null
 
   if (!context?.publicHash) {
     throw new Error('publicHash must be set for payment-data types')
@@ -22,8 +22,11 @@ export default function PaymentDataElement(
     )
   }
 
-  paymentData.publicHash = context.publicHash
-  paymentData.currency = context.currency
+  const paymentData: PaymentData = {
+    ...base,
+    publicHash: context.publicHash,
+    currency: context.currency,
+  }
 
   return <IRISPaySDK {...props} payment_data={paymentData} type="payment-data" />
 }

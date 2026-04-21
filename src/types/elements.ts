@@ -7,7 +7,7 @@ import type {
 
 type IRISPaymentElement = { type: 'payment'; show_bank_selector?: boolean }
 type IRISPayWithIbanSelection = { type: 'pay-with-iban-selection'; show_bank_selector?: boolean }
-type IrisBudgetPayment = { type: 'budget-payment'; payment_data: PaymentData & BudgetPayment }
+type IrisBudgetPayment = { type: 'budget-payment'; payment_data?: BudgetPayment }
 type IRISPaymentData = {
   type: 'payment-data'
   payment_data?: PaymentData
@@ -15,10 +15,10 @@ type IRISPaymentData = {
 }
 type IRISPaymentDataWithAccountId = {
   type: 'payment-data-with-accountid'
-  payment_data_with_account_id: PaymentDataWithAccountId
+  payment_data_with_account_id?: PaymentDataWithAccountId
   show_bank_selector?: boolean
 }
-type IRISPayWithCodeElement = { type: 'pay-with-code'; code: string }
+type IRISPayWithCodeElement = { type: 'pay-with-code'; code?: string }
 type IrisAddIban = { type: 'add-iban'; show_bank_selector?: boolean; ibanhookhash?: string }
 type IRISAddIbanWithBank = { type: 'add-iban-with-bank'; ibanhookhash?: string; bankhash: string }
 

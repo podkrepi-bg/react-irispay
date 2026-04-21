@@ -18,7 +18,7 @@ export type PaymentData = {
   useOnlySelectedBankHashes?: string | null
 }
 
-export type BudgetPayment = {
+export type BudgetPayment = PaymentData & {
   identifierType: string
   identifier: 'EIK' | 'EGN' | 'LNC'
   ultimateDebtor: string
@@ -33,6 +33,16 @@ export type PaymentDataWithAccountId = {
   bankAccountId: string
   sum: number
 }
+
+export type PaymentWithCode = {
+  code: string
+}
+
+export type ElementData =
+  | PaymentData
+  | BudgetPayment
+  | PaymentDataWithAccountId
+  | PaymentWithCode
 
 export type IrisPayComponentCommon = {
   userhash: string

@@ -165,14 +165,14 @@ import type { PaymentData, OnPaymentEventLastStep } from '@podkrepibg/react-iris
 import type { PaymentData } from '@podkrepibg/react-irispay/types'
 ```
 
-## Lazy updates: feeding session and payment data later
+## Lazy updates: feeding session and element data later
 
-You rarely have the session hashes or the payment amount at the moment you mount the provider. `useIrisElements()` returns two setters that let you push them in once they're ready — every child element re-renders automatically and picks up the new values.
+You rarely have the session hashes or the element's payload at the moment you mount the provider. `useIrisElements()` returns two setters that let you push them in once they're ready — every child element re-renders and picks up the new values.
 
 | Setter | Updates | Read via |
 | --- | --- | --- |
 | `updatePaymentSessionData({ hookHash, userhash })` | The IRIS session | `paymentSession` |
-| `updatePaymentData(data)` | Default payload for `<PaymentDataElement>` | `paymentData` |
+| `updateElementData<T>(data)` | Payload for any data-bearing element | `elementData` |
 
 ### Deferring the session
 
@@ -215,20 +215,22 @@ export function Checkout() {
 
 Once the setter fires, the host `<div>` mounts and the SDK script loads. Calling the setter again replaces the session entirely — useful if the user bails and you want to restart the flow with a fresh hookhash.
 
-### Deferring payment data
+### Deferring element data
 
-`<PaymentDataElement>` looks at the context's `paymentData` first, then falls back to the `payment_data` prop. Leave both empty at mount and push data once the user fills in the form:
+Every data-bearing element (`<PaymentDataElement>`, `<BudgetPaymentElement>`, `<PaymentDataWithAccountIdElement>`, `<PaymentWithCodeElement>`) reads the context's `elementData` slot first, then falls back to its own prop, and returns `null` if neither is set. Push data via `updateElementData<T>(data)` — the generic **must be specified explicitly** so TypeScript knows which shape you're writing:
 
 ```tsx
+import type { PaymentData, BudgetPayment, PaymentWithCode } from '@podkrepibg/react-irispay'
+
 function AmountPicker() {
-  const { updatePaymentData } = useIrisElements()
+  const { updateElementData } = useIrisElements()
 
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault()
         const sum = Number(new FormData(e.currentTarget).get('amount'))
-        updatePaymentData?.({
+        updateElementData?.<PaymentData>({
           sum,
           description: 'Donation',
           toIban: 'BG00XXXX...',
@@ -255,7 +257,20 @@ function Checkout() {
 }
 ```
 
-`<PaymentDataElement>` returns `null` as long as `paymentData` is `null` and no `payment_data` prop was passed, so the host div only appears once you have something to charge. Both setters replace the whole object — pass a complete payload each time rather than merging.
+Other shapes work the same way — just point the generic at the type that matches the element you're feeding:
+
+```tsx
+updateElementData?.<BudgetPayment>({
+  sum, description, toIban, merchant,
+  identifierType: 'id', identifier: 'EIK', ultimateDebtor: 'Payer',
+})
+
+updateElementData?.<PaymentWithCode>({ code: 'XYZ' })
+```
+
+The type parameter is required: `updateElementData?.({...})` without `<T>` is a type error, and `<T>` must extend one of `PaymentData | BudgetPayment | PaymentDataWithAccountId | PaymentWithCode` (the `ElementData` union). The slot holds one payload at a time — if you mount multiple data-bearing elements simultaneously, they share it, so prefer one per provider tree.
+
+Both setters replace the whole object — pass a complete payload each time rather than merging.
 
 ## How it mounts
 
