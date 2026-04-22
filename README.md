@@ -293,6 +293,80 @@ Each handle method is precisely typed to the shape that element expects. TS catc
 
 `ref.current` is `null` until the element mounts, so always optional-chain (`?.`) the first access. The handle replaces the whole payload — pass a complete object each time rather than merging.
 
+### `<IrisElement>` — dynamic composer for switching element types at runtime
+
+When you don't know in advance which element type you need, or the type changes during a session (e.g. a dashboard that pivots between `payment`, `pay-with-code`, and `add-iban`), use `<IrisElement>`. It's a single component with one ref that can render any of the eight element types based on an options object you pass to `load()`.
+
+```tsx
+import { useRef } from 'react'
+import {
+  IrisElements,
+  IrisElement,
+  type IrisElementHandle,
+} from '@podkrepibg/react-irispay'
+
+export function DynamicCheckout() {
+  const controllerRef = useRef<IrisElementHandle>(null)
+
+  return (
+    <IrisElements ...>
+      <button
+        onClick={() =>
+          controllerRef.current?.load({
+            type: 'payment-data',
+            payment_data: { sum: 25, description: 'Donation', toIban: 'BG...', merchant: '...' },
+          })
+        }>
+        Donate
+      </button>
+      <button
+        onClick={() =>
+          controllerRef.current?.load({ type: 'pay-with-code', code: 'XYZ' })
+        }>
+        Redeem code
+      </button>
+
+      <IrisElement
+        ref={controllerRef}
+        onLoad={(e) => console.log('loaded', e.detail)}
+        onSuccess={(e) => console.log('success', e.detail)}
+        onError={(e) => console.error(e.detail.payload.message)}
+      />
+    </IrisElements>
+  )
+}
+```
+
+Before the first `load()` call, `<IrisElement>` renders `null`. Each subsequent `load()` call unmounts the previous underlying element and mounts the new one. Listener props (`onLoad`, `onSuccess`, `onError`) live on `<IrisElement>` itself and forward to whichever element is currently mounted.
+
+#### `load()` argument shape
+
+`load()` takes the same discriminated union (`IRISPayTypes`) that the individual elements use for their props. Field names match what you'd pass to the per-element components directly:
+
+```ts
+controllerRef.current?.load({ type: 'payment', show_bank_selector: true })
+controllerRef.current?.load({ type: 'pay-with-iban-selection' })
+controllerRef.current?.load({ type: 'payment-data', payment_data: { sum, description, toIban, merchant } })
+controllerRef.current?.load({ type: 'budget-payment', payment_data: { ...pd, identifier: 'EIK', identifierType: 'id', ultimateDebtor: 'X' } })
+controllerRef.current?.load({ type: 'payment-data-with-accountid', payment_data_with_account_id: {...} })
+controllerRef.current?.load({ type: 'pay-with-code', code: 'XYZ' })
+controllerRef.current?.load({ type: 'add-iban' })
+controllerRef.current?.load({ type: 'add-iban-with-bank', bankhash: 'BANK' })
+```
+
+TypeScript narrows the payload fields (`payment_data`, `code`, `bankhash`, etc.) based on the `type` literal, so typos and mismatched payloads are caught at compile time.
+
+#### When to use which API
+
+| Scenario | Use |
+| --- | --- |
+| You know at mount time which element to render | per-element component (e.g. `<PaymentDataElement>`) |
+| You want parallel elements mounted side by side | per-element components, one ref each |
+| The element type is decided at runtime, or changes during the session | `<IrisElement>` + `load()` |
+| You want a single ref/handle for any element the page might show | `<IrisElement>` |
+
+The two APIs compose. Nothing stops you from having an `<IrisElement>` for the dynamic part of the page and a dedicated `<PaymentDataElement>` for a static confirmation step under the same `<IrisElements>` provider.
+
 ## How it mounts
 
 Each element attaches a Shadow DOM to a host `<div>`, loads the IRIS SDK stylesheet into that shadow root, injects the SDK script once per page into `document.body`, and portals the `<irispay-component>` into the shadow root. Your host app's global CSS will not leak into the IRIS UI and IRIS's styles will not leak out. SSR is safe — all DOM access happens inside `useEffect`.

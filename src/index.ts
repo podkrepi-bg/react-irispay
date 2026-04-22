@@ -8,6 +8,9 @@ export type {
   ElementWithListener,
 } from './elements/IRISPaySDK'
 
+export { default as IrisElement } from './elements/IrisElement'
+export type { IrisElementHandle } from './elements/IrisElement'
+
 export { default as PaymentElement } from './elements/PaymentElement'
 
 export { default as PaymentDataElement } from './elements/PaymentDataElement'
