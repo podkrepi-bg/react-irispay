@@ -1,17 +1,18 @@
-import { useContext } from 'react'
+import { forwardRef } from 'react'
 import IRISPaySDK, { type ElementWithListener } from './IRISPaySDK'
-import { IRISPayContext } from '../context/IRISPayProvider'
-import type { PaymentDataWithAccountId } from '../types/common'
+import { useElementHandle } from '../internal/useElementHandle'
+import type { ElementHandle, PaymentDataWithAccountId } from '../types/common'
 import type { IRISPaymentDataWithAccountIdProps } from '../types/elements'
 
-export default function PaymentDataWithAccountIdElement(
-  props: ElementWithListener<IRISPaymentDataWithAccountIdProps>,
-) {
-  const context = useContext(IRISPayContext)
-  const payment_data_with_account_id =
-    (context?.elementData as PaymentDataWithAccountId | undefined) ??
-    props.payment_data_with_account_id
+export type PaymentDataWithAccountIdElementHandle = ElementHandle<PaymentDataWithAccountId>
 
+const PaymentDataWithAccountIdElement = forwardRef<
+  PaymentDataWithAccountIdElementHandle,
+  ElementWithListener<IRISPaymentDataWithAccountIdProps>
+>(function PaymentDataWithAccountIdElement(props, ref) {
+  const internal = useElementHandle<PaymentDataWithAccountId>(ref)
+
+  const payment_data_with_account_id = internal ?? props.payment_data_with_account_id
   if (!payment_data_with_account_id) return null
 
   return (
@@ -21,4 +22,6 @@ export default function PaymentDataWithAccountIdElement(
       type="payment-data-with-accountid"
     />
   )
-}
+})
+
+export default PaymentDataWithAccountIdElement

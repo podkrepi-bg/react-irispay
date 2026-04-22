@@ -1,15 +1,24 @@
-import { useContext } from 'react'
+import { forwardRef, useContext } from 'react'
 import IRISPaySDK, { type ElementWithListener } from './IRISPaySDK'
 import { IRISPayContext } from '../context/IRISPayProvider'
-import { SUPPORTED_CURRENCIES, type BudgetPayment } from '../types/common'
+import { useElementHandle } from '../internal/useElementHandle'
+import {
+  SUPPORTED_CURRENCIES,
+  type BudgetPayment,
+  type ElementHandle,
+} from '../types/common'
 import type { IRISBudgetPaymentElementProps } from '../types/elements'
 
-export default function BudgetPaymentElement(
-  props: ElementWithListener<IRISBudgetPaymentElementProps>,
-) {
-  const context = useContext(IRISPayContext)
-  const base = (context?.elementData as BudgetPayment | undefined) ?? props.payment_data
+export type BudgetPaymentElementHandle = ElementHandle<BudgetPayment>
 
+const BudgetPaymentElement = forwardRef<
+  BudgetPaymentElementHandle,
+  ElementWithListener<IRISBudgetPaymentElementProps>
+>(function BudgetPaymentElement(props, ref) {
+  const context = useContext(IRISPayContext)
+  const internal = useElementHandle<BudgetPayment>(ref)
+
+  const base = internal ?? props.payment_data
   if (!base) return null
 
   if (!context?.publicHash) {
@@ -29,4 +38,6 @@ export default function BudgetPaymentElement(
   }
 
   return <IRISPaySDK {...props} payment_data={paymentData} type="budget-payment" />
-}
+})
+
+export default BudgetPaymentElement

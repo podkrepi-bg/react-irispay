@@ -1,10 +1,11 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, waitFor } from '@testing-library/react'
-import { useEffect, type ComponentProps, type ReactElement } from 'react'
+import { useEffect, useRef, type ComponentProps, type ReactElement } from 'react'
 import IrisElements from '../src/context/IRISPayProvider'
-import { useIrisElements } from '../src/context/useIrisElements'
 import PaymentElement from '../src/elements/PaymentElement'
-import PaymentDataElement from '../src/elements/PaymentDataElement'
+import PaymentDataElement, {
+  type PaymentDataElementHandle,
+} from '../src/elements/PaymentDataElement'
 import BudgetPaymentElement from '../src/elements/BudgetPaymentElement'
 import PayWithIbanSelectionElement from '../src/elements/PayWithIbanSelectionElement'
 import PaymentWithCodeElement from '../src/elements/PaymentWithCodeElement'
@@ -154,16 +155,8 @@ describe('BudgetPaymentElement', () => {
   })
 })
 
-describe('updateElementData', () => {
-  it('lets a sibling feed PaymentDataElement via the context setter', async () => {
-    function Feeder({ data }: { data: PaymentData }) {
-      const { updateElementData } = useIrisElements()
-      useEffect(() => {
-        updateElementData?.<PaymentData>(data)
-      }, [data, updateElementData])
-      return null
-    }
-
+describe('PaymentDataElement imperative handle', () => {
+  it('lets a parent feed payment data via the ref', async () => {
     const data: PaymentData = {
       sum: 42,
       description: 'Lazy payment',
@@ -171,14 +164,15 @@ describe('updateElementData', () => {
       merchant: 'lazy-merchant',
     }
 
-    const { container } = render(
-      wrap(
-        <>
-          <Feeder data={data} />
-          <PaymentDataElement />
-        </>,
-      ),
-    )
+    function Parent() {
+      const ref = useRef<PaymentDataElementHandle>(null)
+      useEffect(() => {
+        ref.current?.updateElementData(data)
+      }, [])
+      return <PaymentDataElement ref={ref} />
+    }
+
+    const { container } = render(wrap(<Parent />))
 
     const el = await getPortaledElement(container)
     const pd = JSON.parse(el.getAttribute('payment_data')!) as PaymentData
@@ -186,5 +180,15 @@ describe('updateElementData', () => {
     expect(pd.description).toBe('Lazy payment')
     expect(pd.publicHash).toBe('pub')
     expect(pd.currency).toBe('EUR')
+  })
+
+  it('renders nothing until the ref pushes data', () => {
+    function Parent() {
+      const ref = useRef<PaymentDataElementHandle>(null)
+      return <PaymentDataElement ref={ref} />
+    }
+
+    const { container } = render(wrap(<Parent />))
+    expect(container.firstChild).toBeNull()
   })
 })

@@ -38,11 +38,9 @@ export type PaymentWithCode = {
   code: string
 }
 
-export type ElementData =
-  | PaymentData
-  | BudgetPayment
-  | PaymentDataWithAccountId
-  | PaymentWithCode
+export type ElementHandle<T> = {
+  updateElementData: (data: T) => void
+}
 
 export type IrisPayComponentCommon = {
   userhash: string

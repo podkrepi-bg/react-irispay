@@ -1,6 +1,5 @@
 import { createContext, useState, type PropsWithChildren } from 'react'
 import type {
-  ElementData,
   IRISSupportedCountries,
   IRISSupportedLangs,
   SupportedCurrency,
@@ -18,16 +17,11 @@ type IPContext = {
   currency?: SupportedCurrency
   paymentSession?: SessionData
   updatePaymentSessionData?: (obj: SessionData) => void
-  elementData?: ElementData | null
-  updateElementData?: <T extends ElementData = never>(data: NoInfer<T>) => void
 }
 
 export const IRISPayContext = createContext<IPContext | null>(null)
 
-type IrisElementProps = Omit<
-  IPContext,
-  'updatePaymentSessionData' | 'paymentSession' | 'elementData' | 'updateElementData'
->
+type IrisElementProps = Omit<IPContext, 'updatePaymentSessionData' | 'paymentSession'>
 
 type IrisElementsProps = PropsWithChildren<IrisElementProps>
 
@@ -45,19 +39,12 @@ export default function IrisElements({
     hookHash: hookhash,
     userhash,
   })
-  const [elementData, setElementData] = useState<ElementData | null>(null)
-
-  function updateElementData<T extends ElementData = never>(data: NoInfer<T>) {
-    setElementData(data)
-  }
 
   return (
     <IRISPayContext.Provider
       value={{
         paymentSession,
         updatePaymentSessionData: setPaymentSession,
-        elementData,
-        updateElementData,
         backend,
         publicHash,
         country,
