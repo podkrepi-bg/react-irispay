@@ -1,4 +1,4 @@
-import { IrisElements, PaymentElement } from '@podkrepibg/react-irispay'
+import { IrisElements, PaymentElement } from '@podkrepi-bg/react-irispay'
 
 export default function App() {
   return (

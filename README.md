@@ -1,4 +1,4 @@
-# @podkrepibg/react-irispay
+# @podkrepi-bg/react-irispay
 
 A thin React wrapper around the [IRIS Pay (Pay-By-Click) Web SDK](https://www.irisbgsf.com/en/sdk-documentation). It exposes IRIS's `<irispay-component>` Web Component as a set of typed React components driven by a shared context provider.
 
@@ -22,7 +22,7 @@ Peer dependencies: `react >= 18` and `react-dom >= 18`. The package is **ESM-onl
 import {
   IrisElements,
   PaymentDataElement,
-} from '@podkrepibg/react-irispay'
+} from '@podkrepi-bg/react-irispay'
 
 export function CheckoutPage({ session }: {
   session: { hookhash: string; userhash: string }
@@ -160,9 +160,9 @@ Other event types emitted by the SDK (`creating-payment`, `closeClicked`, `langu
 All public types are re-exported from both the main entry and a types-only subpath (useful if you want type definitions without pulling in the React runtime):
 
 ```ts
-import type { PaymentData, OnPaymentEventLastStep } from '@podkrepibg/react-irispay'
+import type { PaymentData, OnPaymentEventLastStep } from '@podkrepi-bg/react-irispay'
 // or, types-only:
-import type { PaymentData } from '@podkrepibg/react-irispay/types'
+import type { PaymentData } from '@podkrepi-bg/react-irispay/types'
 ```
 
 ## Lazy updates: feeding session and element data later
@@ -184,7 +184,7 @@ import {
   IrisElements,
   PaymentElement,
   useIrisElements,
-} from '@podkrepibg/react-irispay'
+} from '@podkrepi-bg/react-irispay'
 
 function CheckoutInner() {
   const { updatePaymentSessionData } = useIrisElements()
@@ -232,7 +232,7 @@ import {
   IrisElements,
   PaymentDataElement,
   type PaymentDataElementHandle,
-} from '@podkrepibg/react-irispay'
+} from '@podkrepi-bg/react-irispay'
 
 function AmountPicker({
   paymentRef,
@@ -303,7 +303,7 @@ import {
   IrisElements,
   IrisElement,
   type IrisElementHandle,
-} from '@podkrepibg/react-irispay'
+} from '@podkrepi-bg/react-irispay'
 
 export function DynamicCheckout() {
   const controllerRef = useRef<IrisElementHandle>(null)

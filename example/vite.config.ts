@@ -9,7 +9,7 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@podkrepibg/react-irispay': resolve(__dirname, '../src/index.ts'),
+      '@podkrepi-bg/react-irispay': resolve(__dirname, '../src/index.ts'),
     },
   },
 })
