@@ -1,6 +1,6 @@
 {
   "name": "@podkrepi-bg/react-irispay",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "React components for the IRIS Pay (Pay-By-Click) SDK.",
   "type": "module",
   "sideEffects": false,
